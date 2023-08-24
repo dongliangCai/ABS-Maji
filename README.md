@@ -6,6 +6,8 @@ Non-intrusive access monitoring scenario using attribute based signatures.
 
 * **Python 3.6** (verified to work) or possibly newer (untested) with the included base libraries
 * Libraries **charm-crypto**, **netfilterqueue** and **scapy** and their respective requirements
+* Install charm-crypto in linux: https://zhuanlan.zhihu.com/p/447934026
+* sudo apt install libnfnetlink-dev libnetfilter-queue-dev(Install **netfilterqueue**)
 
 ## Usage
 
