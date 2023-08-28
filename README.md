@@ -9,6 +9,15 @@ Non-intrusive access monitoring scenario using attribute based signatures.
 * Install charm-crypto in linux: https://zhuanlan.zhihu.com/p/447934026
 * sudo apt install libnfnetlink-dev libnetfilter-queue-dev(Install **netfilterqueue**)
 
+## Fix
+* There are two issues in the PolicyParser of charm-crypto.
+  1.It will parse “age AND test” and generate nodes like 'AGE' and 'TEST', which will cause KeyError in python.
+  2.It will parse "AGE<18" to "AGE" “<” “18”.
+* Solution
+  1. charm/toolbox/node.py   Class BinNode  func _init_   delete upper().
+     line 24:   self.attribute = value
+  2. charm/toolbox/policy_tree.py  getBNF  add Combine to leafConditional.
+     line 58: leafConditional = Combine(Word(alphanums) + BinOperator + Word(nums)).setParseAction( parseNumConditional) 
 ## Usage
 
 1. Configure addons by editing ABSSetup.py (JSON support may come later)
