@@ -4,15 +4,18 @@ from charm.toolbox.policytree import PolicyParser
 from charm.toolbox.node import *
 import json
 import random
+import fire
 
 class ABS:
     '''
     2B done
     '''
+
     def __init__(self,group):
         self.group = group
 
-    def trusteesetup(self, attributes):
+
+    def trusteesetup(self):
         '''
         Run by signature trustees
         returns the trustee public key
@@ -24,9 +27,10 @@ class ABS:
 
         Attributes have to be appended to the end for global-ness
         '''
+        attributes = ['AGE<18','ECCENTRIC','LAZY','VIOLENT','ATTR2','test','test1','SKILLFUL']
         tpk = {}
-        tmax = 2*len(attributes)
-
+        #tmax = 2*len(attributes)
+        tmax = 50
         tpk['g'] = self.group.random(G1)
         for i in range(tmax+1): #provide the rest of the generators
             tpk['h{}'.format(i)] = self.group.random(G2)
@@ -38,8 +42,9 @@ class ABS:
             counter += 1
 
         tpk['atr'] = attriblist
-
+        print(attriblist)
         return tpk
+
 
     def authoritysetup(self, tpk):
         '''
@@ -48,8 +53,8 @@ class ABS:
         '''
         ask = {}
         apk = {}
-        tmax = 2 * len(tpk['atr'])
-
+        #tmax = 2 * len(tpk['atr'])
+        tmax = 50
         group = self.group
         a0,a,b = group.random(ZR), group.random(ZR), group.random(ZR)
         ask['a0'] = a0
@@ -68,6 +73,7 @@ class ABS:
 
         return ask,apk
 
+
     def generateattributes(self, ask, attriblist):
         '''
         returns signing key SKa
@@ -85,6 +91,7 @@ class ABS:
 
         return ska
 
+
     def sign(self, pk, ska, message, policy): #pk = (tpk,apk)
         '''
         return signature
@@ -93,7 +100,7 @@ class ABS:
         lambd = {}
 
         M,u = self.getMSP(policy, tpk['atr'])
-
+        
         mu = self.group.hash(message+policy)
 
         r = []
@@ -121,6 +128,7 @@ class ABS:
             lambd['P{}'.format(j)] = end
 
         return lambd
+
 
     def verify(self, pk, sign, message, policy):
         '''
@@ -155,6 +163,7 @@ class ABS:
                     print(err)
             return sentence
 
+
     def getMSP(self,policy,attributes):
         '''
         returns the MSP that fits given policy
@@ -170,10 +179,10 @@ class ABS:
             u[counter] = i
             u[i] = counter
             counter += 1
-
+        # print("debug: begin parse policy")
         parser = PolicyParser()
         tree = parser.parse(policy)
-
+        # print("debug: end parse policy")
         matrix = [] #create matrix as a dummy first (easy indexing)
         for i in range(len(attributes)):
             matrix.append([])
@@ -235,16 +244,42 @@ class ABS:
                 continue
         return dicti
 
+
+
 if __name__ == "__main__":
     group = PairingGroup('MNT159')
-    attributes = ['SKILLFUL','ECCENTRIC','LAZY','VIOLENT']
-    print('ATTRIBUTE TABLE: ',attributes)
-    absinst = ABS(group)
-    tpk = absinst.trusteesetup(attributes)
-    ask,apk = absinst.authoritysetup(tpk)
-    ska = absinst.generateattributes(ask,['SKILLFUL'])
-    lam = absinst.sign((tpk,apk), ska, 'rar', 'SKILLFUL OR ECCENTRIC')
-    print(absinst.verify((tpk,apk),lam,'rar','SKILLFUL OR ECCENTRIC'))
-    ska2 = absinst.generateattributes(ask,['SKILLFUL','ECCENTRIC'])
-    lam2 = absinst.sign((tpk,apk), ska2, 'rar', 'SKILLFUL OR ECCENTRIC')
-    print(absinst.verify((tpk,apk),lam2,'rar','SKILLFUL OR ECCENTRIC'))
+    fire.Fire(ABS(group))
+    # print(os.system("python3 MathABS.py trusteesetup" + attributes))
+
+    # attributes = ['AGE<18','ECCENTRIC','LAZY','VIOLENT','ATTR2','test','test1','SKILLFUL']
+#     print('ATTRIBUTE TABLE: ',attributes)
+
+    # absinst = ABS(group)
+    # tpk = absinst.trusteesetup(attributes)
+#     ask,apk = absinst.authoritysetup(tpk)
+
+#     #Add new attribute
+#     #tpk['atr']['AATR1'] = 7
+#     #ask['atr']['AATR1'] = 7
+#     print(ask['atr'])
+    
+#     #test OR with AND
+#     ska = absinst.generateattributes(ask,['SKILLFUL','test1'])
+#     lam = absinst.sign((tpk,apk), ska, 'rar', '(SKILLFUL OR ECCENTRIC) AND test1')
+#     print(absinst.verify((tpk,apk),lam,'rar','(SKILLFUL OR ECCENTRIC) AND test1'))
+
+#     #test two attributes with OR policy
+#     ska2 = absinst.generateattributes(ask,['ATTR2','test'])
+#     print("generate attribute key succ")
+
+#     lam2 = absinst.sign((tpk,apk), ska2, 'rar', 'AGE<18 OR test')
+#     print("sign succ")
+
+#     print(absinst.verify((tpk,apk),lam2,'rar','AGE<18 OR test'))
+    
+
+
+#     #test attribute doesn't satisfy
+#     ska3 = absinst.generateattributes(ask,['SKILLFUL'])
+#     lam3 = absinst.sign((tpk,apk), ska3, 'rar', 'SKILLFUL AND ECCENTRIC')
+#     print(absinst.verify((tpk,apk),lam3,'rar','SKILLFUL AND ECCENTRIC'))
