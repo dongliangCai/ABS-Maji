@@ -5,6 +5,7 @@ from charm.toolbox.node import *
 import json
 import random
 import fire
+import os
 
 class ABS:
     '''
@@ -42,17 +43,22 @@ class ABS:
             counter += 1
 
         tpk['atr'] = attriblist
-        print(attriblist)
-        return tpk
+        #print(attriblist)
+        #print(tpk)
+        # store tpk
+        self.storekey("tpk.txt",tpk)
+        #print(self.getkey("tpk.txt"))
+        #return tpk
 
 
-    def authoritysetup(self, tpk):
+    def authoritysetup(self):
         '''
         Run by attribute-giving authority, takes tpk as parametre
         returns attribute master key and public key
         '''
         ask = {}
         apk = {}
+        tpk = self.getkey("tpk.txt")
         #tmax = 2 * len(tpk['atr'])
         tmax = 50
         group = self.group
@@ -71,36 +77,58 @@ class ABS:
 
         apk['C'] = tpk['g'] ** group.random(ZR) #C = g^c at the end
 
-        return ask,apk
+        self.storekey("ask.txt",ask)
+        self.storekey("apk.txt",apk)
+
+        #return ask,apk
 
 
-    def generateattributes(self, ask, attriblist):
+    def generateattributes(self, id, attriblist):
         '''
         returns signing key SKa
         '''
+        print(attriblist)
         ska = {}
-
+        ask = self.getkey("ask.txt")
         Kbase = self.group.random(G1) #"random generator" within G
         ska['Kbase'] = Kbase
 
         ska['K0'] = Kbase ** (1/ask['a0'])
 
+        attrstr = ''
         for i in attriblist:
+            attrstr += (str(i)+'_')
             number = ask['atr'][i]
             ska['K{}'.format(number)] = Kbase ** (1 / (ask['a'] + number * ask['b']))
+        
 
-        return ska
+        path = os.path.join(id,"SK")
+        if not os.path.exists(path):
+            os.makedirs(path)
+        filename = path + "/" + attrstr + ".txt"
+        print(filename)
+        self.storekey(filename,ska)
+        #return ska
 
 
-    def sign(self, pk, ska, message, policy): #pk = (tpk,apk)
+    def sign(self, id, attriblist, message, policy): #pk = (tpk,apk)
         '''
         return signature
         '''
-        tpk,apk = pk
+        
+        #tpk,apk = pk
+        tpk = self.getkey("tpk.txt")
+        apk = self.getkey("apk.txt")
         lambd = {}
 
+        attrstr = ''
+        for i in attriblist:
+            attrstr += (str(i)+'_')
+        filename = id + "/SK/" + attrstr + ".txt"
+        ska = self.getkey(filename)
+
+
         M,u = self.getMSP(policy, tpk['atr'])
-        
         mu = self.group.hash(message+policy)
 
         r = []
@@ -127,14 +155,24 @@ class ABS:
                 end = end * (base ** exp)
             lambd['P{}'.format(j)] = end
 
+        path = os.path.join(id,"Sign")
+        if not os.path.exists(path):
+            os.makedirs(path)        
+        filename = path + "/" + policy + ".txt"
+        self.storekey(filename, lambd)
         return lambd
 
 
-    def verify(self, pk, sign, message, policy):
+    def verify(self, id, signpolicy, message, policy):
         '''
         return bool
         '''
-        tpk,apk = pk
+        #tpk,apk = pk
+        tpk = self.getkey("tpk.txt")
+        apk = self.getkey("apk.txt")
+
+        filename = id + "/Sign/" + signpolicy + ".txt"
+        sign = self.getkey(filename)
 
         M,u = self.getMSP(policy,tpk['atr'])
 
@@ -244,7 +282,15 @@ class ABS:
                 continue
         return dicti
 
+    def storekey(self, filename, key):
+        file = open(filename, "w")
+        file.write(self.encodestr(key))
+        print("write filename succ")
+        file.close()
 
+    def getkey(self, filename):
+        file = open(filename, "r")
+        return self.decodestr(file.read())
 
 if __name__ == "__main__":
     group = PairingGroup('MNT159')
