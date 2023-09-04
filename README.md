@@ -5,9 +5,11 @@ Non-intrusive access monitoring scenario using attribute based signatures.
 ## Requirements
 
 * **Python 3.6** (verified to work) or possibly newer (untested) with the included base libraries
-* Libraries **charm-crypto**, **netfilterqueue** and **scapy** and their respective requirements
+* Libraries **charm-crypto**, **netfilterqueue**, **numpy**, **fire** and **scapy** and their respective requirements
 * Install charm-crypto in linux: https://zhuanlan.zhihu.com/p/447934026
 * sudo apt install libnfnetlink-dev libnetfilter-queue-dev(Install **netfilterqueue**)
+
+
 
 ## Fix
   ### There are two issues in the PolicyParser of charm-crypto.
@@ -27,3 +29,13 @@ Non-intrusive access monitoring scenario using attribute based signatures.
 * `serverhost` and `serverport` are self-explanatory.
 * `networkalias` is the IP address representing the client in the packets sent to/from the client. This is for enabling NAT support.
 5. When finished, stop the processes via Ctrl-C and run `$ sudo iptables -D OUTPUT -p tcp -j NFQUEUE` to stop the packet handler
+
+
+## Test
+
+*  setup attributes = ['AGE<18','ECCENTRIC','LAZY','VIOLENT','ATTR2','test','test1','SKILLFUL'] now (we can add new attributes without setup again)
+1. python3 MathABS.py generateattributes "id" "attr1 attr2 attr3 ..."
+2. python3 MathABS.py sign "id" "attr1 attr2 attr3 ..." "message" "policy"
+3. python3 MathABS.py verify "id" "signpolicy" "message" "policy"
+
+* user can apply his/her attribute key once and sign every policy which his/her attribute key satisfy.

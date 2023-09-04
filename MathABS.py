@@ -6,6 +6,7 @@ import json
 import random
 import fire
 import os
+import numpy as np 
 
 class ABS:
     '''
@@ -14,6 +15,42 @@ class ABS:
 
     def __init__(self,group):
         self.group = group
+
+
+    def generate_binary_arrays(self,length):
+        arrays = []
+        for i in range(2**length):
+            binary_array = []
+            for j in range(length):
+                binary_array.append((i >> j) & 1)
+            arrays.append(binary_array)
+        return arrays
+
+    # return satisfiable SKa or empty
+    def spantotarget(self, tpk, matrix, ska, u):
+        sk_num = []
+        for i in range(1,len(matrix)+1):
+            if 'K{}'.format(tpk['atr'][u[i-1]]) in ska:
+                sk_num.append(tpk['atr'][u[i-1]])
+        new_M = []
+        for i in sk_num:
+            new_M.append(matrix[i-2])
+
+        x = self.generate_binary_arrays(len(new_M))
+
+        result = []
+        for i in range(2**len(new_M)):
+            m = np.array(np.dot(x[i], new_M))
+            if m[0] == 1 and sum(m) == 1:
+                result = x[i]
+                break 
+    
+        for i in range(0, len(result)):
+            if result[i] == 1:
+                result[i] = sk_num[i]
+            else:
+                result[i] = -1
+        return result;  
 
 
     def trusteesetup(self):
@@ -87,7 +124,7 @@ class ABS:
         '''
         returns signing key SKa
         '''
-        print(attriblist)
+        #print(attriblist)
         ska = {}
         ask = self.getkey("ask.txt")
         Kbase = self.group.random(G1) #"random generator" within G
@@ -95,13 +132,16 @@ class ABS:
 
         ska['K0'] = Kbase ** (1/ask['a0'])
 
+        attriblist = attriblist.split()
+        print(attriblist)
+
         attrstr = ''
         for i in attriblist:
             attrstr += (str(i)+'_')
             number = ask['atr'][i]
             ska['K{}'.format(number)] = Kbase ** (1 / (ask['a'] + number * ask['b']))
         
-
+        attrstr = attrstr[:-1]
         path = os.path.join(id,"SK")
         if not os.path.exists(path):
             os.makedirs(path)
@@ -115,21 +155,31 @@ class ABS:
         '''
         return signature
         '''
-        
+
         #tpk,apk = pk
         tpk = self.getkey("tpk.txt")
         apk = self.getkey("apk.txt")
         lambd = {}
 
+        attriblist = attriblist.split()
+        print(attriblist)
         attrstr = ''
         for i in attriblist:
             attrstr += (str(i)+'_')
+        attrstr = attrstr[:-1]
         filename = id + "/SK/" + attrstr + ".txt"
         ska = self.getkey(filename)
 
 
         M,u = self.getMSP(policy, tpk['atr'])
         mu = self.group.hash(message+policy)
+
+
+        #if satisfy policy return corresponding key else empty
+        result = self.spantotarget(tpk, M, ska, u)
+        if result == []:
+            print("not satisfy sign policy.")
+            return result
 
         r = []
         for i in range(len(M)+1):
@@ -141,9 +191,10 @@ class ABS:
         for i in range(1,len(M)+1):
             end = 0
             multi = ((apk['C'] * (tpk['g'] ** mu)) ** r[i])
-            try: #this fills in for the v vector
+            #this fills in for the v vector     todo: choose satisfiable vi for signing
+            if (tpk['atr'][u[i-1]]) in result:            
                 end = multi * (ska['K{}'.format(tpk['atr'][u[i-1]])] ** r[0])
-            except KeyError:
+            else:
                 end = multi
             lambd['S{}'.format(i)] = end
 
@@ -178,6 +229,7 @@ class ABS:
 
         mu = self.group.hash(message+policy)
 
+        
         if sign['Y']==0 or pair(sign['Y'],tpk['h0']) != pair(sign['W'],apk['A0']):
             return False
         else:
@@ -285,7 +337,7 @@ class ABS:
     def storekey(self, filename, key):
         file = open(filename, "w")
         file.write(self.encodestr(key))
-        print("write filename succ")
+        print("write succ:", filename) 
         file.close()
 
     def getkey(self, filename):
@@ -315,7 +367,7 @@ if __name__ == "__main__":
 #     print(absinst.verify((tpk,apk),lam,'rar','(SKILLFUL OR ECCENTRIC) AND test1'))
 
 #     #test two attributes with OR policy
-#     ska2 = absinst.generateattributes(ask,['ATTR2','test'])
+#     ska2 = absinst.generateattributes(ask,['AGE<18','test'])
 #     print("generate attribute key succ")
 
 #     lam2 = absinst.sign((tpk,apk), ska2, 'rar', 'AGE<18 OR test')
