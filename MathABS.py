@@ -50,10 +50,17 @@ class ABS:
 
         result = []
         for i in range(2**len(new_M)):
+            flag = 1
             m = np.array(np.dot(x[i], new_M))
-            if m[0] == 1 and sum(m) == 1:
+            for t in range(1,len(m)):
+                if m[t]: 
+                    flag = 0
+                    break
+            if m[0] == 1 and flag:
+                print(m)
                 result = x[i]
-                break 
+                print(result)
+                break
     
         for i in range(0, len(result)):
             if result[i] == 1:
@@ -234,6 +241,9 @@ class ABS:
 
         filename = id + "/Sign/" + signpolicy + ".txt"
         sign = self.getkey(filename)
+
+        if len(sign) == 0:
+            return False  
 
         M,u = self.getMSP(policy,tpk['atr'])
 
