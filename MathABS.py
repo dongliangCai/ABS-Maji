@@ -8,6 +8,16 @@ import fire
 import os
 import numpy as np 
 
+
+def dict_to_strval(input_d):
+    output_d = {}
+
+    for key,value in input_d.items():
+        output_d[key] = str(value)
+    
+    return output_d
+
+
 class ABS:
     '''
     2B done
@@ -40,17 +50,10 @@ class ABS:
 
         result = []
         for i in range(2**len(new_M)):
-            flag = 1
             m = np.array(np.dot(x[i], new_M))
-            for t in range(1,len(m)):
-                if m[t]: 
-                    flag = 0
-                    break
-            if m[0] == 1 and flag:
-                print(m)
+            if m[0] == 1 and sum(m) == 1:
                 result = x[i]
-                print(result)
-                break
+                break 
     
         for i in range(0, len(result)):
             if result[i] == 1:
@@ -155,7 +158,7 @@ class ABS:
         filename = path + "/" + attrstr + ".txt"
         print(filename)
         self.storekey(filename,ska)
-        #return ska
+        return dict_to_strval(ska)
 
 
     def sign(self, id, attriblist, message, policy): #pk = (tpk,apk)
@@ -218,7 +221,7 @@ class ABS:
             os.makedirs(path)        
         filename = path + "/" + policy + ".txt"
         self.storekey(filename, lambd)
-        return lambd
+        return dict_to_strval(lambd)
 
 
     def verify(self, id, signpolicy, message, policy):
@@ -231,9 +234,6 @@ class ABS:
 
         filename = id + "/Sign/" + signpolicy + ".txt"
         sign = self.getkey(filename)
-
-        if len(sign) == 0:
-            return False        
 
         M,u = self.getMSP(policy,tpk['atr'])
 
