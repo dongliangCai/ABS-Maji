@@ -39,3 +39,20 @@ Non-intrusive access monitoring scenario using attribute based signatures.
 3. python3 MathABS.py verify "id" "signpolicy" "message" "policy"
 
 * user can apply his/her attribute key once and sign every policy which his/her attribute key satisfy.
+
+## Docker ABS-server
+you can choose to build image locally or pull from docker hub:
+- Build image locally:
+```bash
+docker build -t abs-server .
+```
+- Pull from docker hub:
+```bash
+docker pull kasemdocker/abs
+```
+
+### Usage
+
+```bash
+docker run -p 80:5000 -d kasemdocker/abs:latest
+```
