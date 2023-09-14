@@ -194,8 +194,19 @@ class ABS:
 
         #if satisfy policy return corresponding key else empty
         result = self.spantotarget(tpk, M, ska, u)
+
+        path = os.path.join(id,"Sign")
+        if not os.path.exists(path):
+            os.makedirs(path)        
+        filename = path + "/" + policy + ".txt"
+
         if result == []:
             print("not satisfy sign policy.")
+            self.storekey(filename,{})
+            # file = open(filename, "w")
+            # file.write("")
+            # print("write succ:", filename) 
+            # file.close()
             return [""]
 
         r = []
@@ -223,10 +234,6 @@ class ABS:
                 end = end * (base ** exp)
             lambd['P{}'.format(j)] = end
 
-        path = os.path.join(id,"Sign")
-        if not os.path.exists(path):
-            os.makedirs(path)        
-        filename = path + "/" + policy + ".txt"
         self.storekey(filename, lambd)
         return dict_to_strval(lambd)
 
@@ -360,7 +367,7 @@ class ABS:
         print("write succ:", filename) 
         file.close()
 
-    def getkey(self, filename):
+    def getkey(self, filename):        
         file = open(filename, "r")
         return self.decodestr(file.read())
 

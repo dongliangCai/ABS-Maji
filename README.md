@@ -33,7 +33,7 @@ Non-intrusive access monitoring scenario using attribute based signatures.
 
 ## Test
 
-*  setup attributes = ['AGE<18','ECCENTRIC','LAZY','VIOLENT','ATTR2','test','test1','SKILLFUL'] now (we can add new attributes without setup again)
+*  setup attributes = ['Age>18','CompanyA','CompanyB','Salary>3000','Age<18','Salary<3000']now (we can add new attributes without setup again)
 1. python3 MathABS.py generateattributes "id" "attr1 attr2 attr3 ..."
 2. python3 MathABS.py sign "id" "attr1 attr2 attr3 ..." "message" "policy"
 3. python3 MathABS.py verify "id" "signpolicy" "message" "policy"
