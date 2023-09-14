@@ -82,7 +82,7 @@ class ABS:
 
         Attributes have to be appended to the end for global-ness
         '''
-        attributes = ['AGE<18','ECCENTRIC','LAZY','VIOLENT','ATTR2','test','test1','SKILLFUL']
+        attributes = ['Age>18','CompanyA','CompanyB','Salary>3000','Age<18','Salary<3000']
         tpk = {}
         #tmax = 2*len(attributes)
         tmax = 50
@@ -196,7 +196,7 @@ class ABS:
         result = self.spantotarget(tpk, M, ska, u)
         if result == []:
             print("not satisfy sign policy.")
-            return result
+            return [""]
 
         r = []
         for i in range(len(M)+1):
