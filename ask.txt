@@ -1,1 +1,1 @@
-{"a0": "0:Fe7O7AyD+17DsamtjpSOPy59snQ=", "a": "0:H4ZtANjCyZorZAeZB+l4uKQ1QnU=", "b": "0:FZ8174h2pFWSPRaOwS9/4X7TWuM=", "atr": {"AGE<18": 2, "ECCENTRIC": 3, "LAZY": 4, "VIOLENT": 5, "ATTR2": 6, "test": 7, "test1": 8, "SKILLFUL": 9}}
+{"a0": "0:HV8rRvYsKQwIfyUlpolJO47v2zc=", "a": "0:CeWndux+QrOGw+ufkinQmp0ud40=", "b": "0:IzxHCbk+VYBJBcNPWiXWj71JNE8=", "atr": {"Age>18": 2, "CompanyA": 3, "CompanyB": 4, "Salary>3000": 5, "Age<18": 6, "Salary<3000": 7}}
